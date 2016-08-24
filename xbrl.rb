@@ -1,11 +1,11 @@
 class Xbrl
-  attr_accessor :url, :type
+  attr_accessor :url_list, :type
 
   def initialize
 
   end
 
-  @url = []
+  @url_list = []
   @type
 
 end
