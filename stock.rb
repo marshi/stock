@@ -35,7 +35,7 @@ ufocatcher = Ufocatcher.new
 xbrl_html_parser = XbrlHtmlParser.new
 xbrl_parser = XbrlParser.new
 
-create_type_json = elasticsearch.create_type_json("profit_and_loss", xbrl_list) #.merge(create_type_json("cachflow", cach_list))
+create_type_json = elasticsearch.create_type_json("profit_and_loss", xbrl_list)
 elasticsearch.create_type(create_type_json.to_json)
 charset = nil
 
