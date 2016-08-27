@@ -6,6 +6,7 @@ class Xbrl
   end
 
   @url_list = []
+  #anplとか
   @type
 
 end
