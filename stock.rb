@@ -5,6 +5,13 @@ require 'nokogiri'
 require 'pp'
 require_relative 'xbrl'
 
+elasticsearch_host = "localhost"
+port = "32769"
+
+stock_codes = [
+		7494
+]
+
 pal_list = [
 		"jppfs_cor:NetSales", #売上高合計
 		"jppfs_cor:CostOfSales", #売上原価合計
@@ -36,7 +43,7 @@ def xbrl_json(list, url)
 		value_tag_list = doc.xpath("//*[@name=\"#{item}\"]")
 		if value_tag_list.empty?
 			puts "empty"
-      puts item
+			puts item
 			next
 		end
 		nilable_sign = value_tag_list.attribute("sign")
@@ -73,7 +80,7 @@ def create_type_json(type, list)
 end
 
 def create_type(json)
-	conn = Faraday::Connection.new(:url => "http://localhost:32846") do |builder|
+	conn = Faraday::Connection.new(:url => "http://localhost:9200") do |builder|
 		builder.use Faraday::Request::UrlEncoded
 		# builder.use Faraday::Response::Logger
 		builder.use Faraday::Adapter::NetHttp
@@ -82,7 +89,7 @@ def create_type(json)
 end
 
 def post(type, json)
-	conn = Faraday::Connection.new(:url => "http://localhost:32846") do |builder|
+	conn = Faraday::Connection.new(:url => "http://localhost:9200") do |builder|
 		builder.use Faraday::Request::UrlEncoded
 		# builder.use Faraday::Response::Logger
 		builder.use Faraday::Adapter::NetHttp
@@ -128,13 +135,14 @@ end
 create_type_json = create_type_json("profit_and_loss", pal_list) #.merge(create_type_json("cachflow", cach_list))
 create_type(create_type_json.to_json)
 
-xbrl_hash = convert_to_xbrl(4762)
-#損益計算書
-xbrl_hash[:anpl].url_list.each{|url_info|
-	map = xbrl_json(pal_list, url_info.url)
-	map["day"] = url_info.day
-	puts map.to_json
-	post("profit_and_loss", map.to_json)
+stock_codes.each{|code|
+  xbrl_hash = convert_to_xbrl(code)
+  #損益計算書
+  xbrl_hash[:anpl].url_list.each{|url_info|
+    map = xbrl_json(pal_list, url_info.url)
+    map["day"] = url_info.day
+    map["code"] = code
+    puts map.to_json
+    post("profit_and_loss", map.to_json)
+  }
 }
-
-
