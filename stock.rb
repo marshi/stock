@@ -14,7 +14,7 @@ stock_codes = [
 ]
 
 xbrl_list = [
-		"CostOfSales", #売上高合計
+		"CostOfSales", #売上原価
 		"NetSales", #売上高合計
 		"CostOfSales", #売上原価合計
 		"GrossProfit", #売上純利益
@@ -41,32 +41,39 @@ charset = nil
 
 stock_codes.each{|code|
 	xbrl_hash = ufocatcher.convert_to_xbrl(code)
+	if xbrl_hash.empty?
+		next
+	end
 	puts xbrl_hash
 	#損益計算書
-	xbrl_hash[:anpl].url_list.each{|url_info|
-		html = open(url_info.url) do |f|
-			charset = f.charset # 文字種別を取得
-			f.read # htmlを読み込んで変数htmlに渡す
-		end
-		map = xbrl_html_parser.parse_to_map(html, charset, xbrl_list)
-		map["day"] = url_info.day
+	xbrl_hash.each{|day, info|
+		map = {}
+    if info.type == :old_xbrl #XBRLファイル対象のパースl
+      info.url_list.each{|url_info|
+        html = open(url_info.url) do |f|
+          charset = f.charset # 文字種別を取得
+          f.read # htmlを読み込んで変数htmlに渡す
+        end
+        map = xbrl_parser.parse(html, charset, xbrl_list)
+      }
+    else
+      info.url_list.each{|url_info|
+        html = open(url_info.url) do |f|
+          charset = f.charset # 文字種別を取得
+          f.read # htmlを読み込んで変数htmlに渡す
+        end
+        puts day
+				puts url_info.url
+        tmp_map = xbrl_html_parser.parse_to_map(html, charset, xbrl_list)
+        map.merge!(tmp_map)
+      }
+    end
+    if map.empty?
+      next
+    end
+    map["day"] = day
 		map["code"] = code
-		puts map.to_json
-		# elasticsearch.post("profit_and_loss", map.to_json)
-	}
-
-	#XBRLファイル対象のパース
-	xbrl_hash[:old_xbrl].url_list.each{|url_info|
-		html = open(url_info.url) do |f|
-			charset = f.charset # 文字種別を取得
-			f.read # htmlを読み込んで変数htmlに渡す
-		end
-		map = xbrl_parser.parse(html, charset, xbrl_list)
-		if map.empty?
-			next
-		end
-		map["day"] = url_info.day
-		map["code"] = code
-		puts map
+		pp map
+		elasticsearch.post("profit_and_loss", map.to_json)
 	}
 }

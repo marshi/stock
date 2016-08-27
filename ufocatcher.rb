@@ -27,12 +27,13 @@ class Ufocatcher
         else
           next
       end
-      xbrl = xbrl_hash[label] ||= Xbrl.new
+      url_info= UrlInfo.new(link)
+      xbrl = xbrl_hash[url_info.day] ||= Xbrl.new
       array = xbrl.url_list ||= []
-      array << UrlInfo.new(link)
+      array << url_info
       xbrl.url_list = array
       xbrl.type = label
-      xbrl_hash[label] = xbrl
+      xbrl_hash[url_info.day] = xbrl
     }
     xbrl_hash
   end
