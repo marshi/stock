@@ -3,12 +3,13 @@ class XbrlHtmlParser
 	def parse_to_map(html, charset, list)
 
 		doc = Nokogiri::HTML.parse(html, nil, charset)
+		doc.remove_namespaces!
 		map = {}
 		list.each{|item|
-			value_tag_list = doc.xpath("//*[@name=\"#{item}\"]")
+			value_tag_list = doc.xpath("//*[@name=\"jppfs_cor:#{item}\"]")
 			if value_tag_list.empty?
-				puts "empty"
-				puts item
+				# puts "empty"
+				# puts item
 				next
 			end
 			nilable_sign = value_tag_list.attribute("sign")
