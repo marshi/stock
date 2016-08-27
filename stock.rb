@@ -5,6 +5,7 @@ require 'nokogiri'
 require 'pp'
 require_relative 'xbrl'
 require_relative 'xbrl_html_parser'
+require_relative 'xbrl_parser'
 require_relative 'elasticsearch'
 require_relative 'ufocatcher'
 
@@ -31,9 +32,14 @@ cach_list = [
 		"jppfs_cor:NetCashProvidedByUsedInFinancingActivities" #財務活動によるキャッシュ・フロー
 ]
 
+xbrl_list = [
+		"CostOfSales"
+]
+
 elasticsearch = Elasticsearch.new
 ufocatcher = Ufocatcher.new
 xbrl_html_parser = XbrlHtmlParser.new
+xbrl_parser = XbrlParser.new
 
 create_type_json = elasticsearch.create_type_json("profit_and_loss", pal_list) #.merge(create_type_json("cachflow", cach_list))
 elasticsearch.create_type(create_type_json.to_json)
@@ -54,4 +60,19 @@ stock_codes.each{|code|
 		puts map.to_json
 		# elasticsearch.post("profit_and_loss", map.to_json)
 	}
+
+  #XBRLファイル対象のパース
+  xbrl_hash[:old_xbrl].url_list.each{|url_info|
+    html = open(url_info.url) do |f|
+      charset = f.charset # 文字種別を取得
+      f.read # htmlを読み込んで変数htmlに渡す
+    end
+    map = xbrl_parser.parse(html, charset, xbrl_list)
+    if map.empty?
+      next
+    end
+		map["day"] = url_info.day
+		map["code"] = code
+    puts map
+  }
 }
