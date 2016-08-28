@@ -12,6 +12,7 @@ class Ufocatcher
     doc.css("link").map{|link|
       link.attr("href")
     }.select{|link|
+      puts link
       link.match(/.*ixbrl.*/) || link.match(/.*\.xbrl$/)
     }.each{|link|
       label = nil

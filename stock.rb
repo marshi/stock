@@ -44,8 +44,6 @@ stock_codes.each{|code|
 	if xbrl_hash.empty?
 		next
 	end
-	puts xbrl_hash
-	#損益計算書
 	xbrl_hash.each{|day, info|
 		map = {}
     if info.type == :old_xbrl #XBRLファイル対象のパースl
@@ -62,8 +60,6 @@ stock_codes.each{|code|
           charset = f.charset # 文字種別を取得
           f.read # htmlを読み込んで変数htmlに渡す
         end
-        puts day
-				puts url_info.url
         tmp_map = xbrl_html_parser.parse_to_map(html, charset, xbrl_list)
         map.merge!(tmp_map)
       }
@@ -73,7 +69,7 @@ stock_codes.each{|code|
     end
     map["day"] = day
 		map["code"] = code
-		pp map
+		# pp map
 		elasticsearch.post("profit_and_loss", map.to_json)
 	}
 }

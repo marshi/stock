@@ -18,7 +18,7 @@ class UrlInfo
   def initialize(url)
     @url = url
     year, month, day = day_parse(url)
-    @day = "#{year}/#{sprintf("%02d", month)}/#{sprintf("%2d", day)}"
+    @day = "#{year}/#{sprintf("%02d", month)}/#{sprintf("%02d", day)}"
   end
 
   @url
