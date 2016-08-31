@@ -17,12 +17,14 @@ class Ufocatcher
     }.each{|link|
       label = nil
       case link
-        when /.*-anpl.*/
-          label = :anpl
-        when /.*-accf.*/
-          label = :accf
-        when /.*-anbs.*/
-          label = :anbs
+        when /.*(-anpl)|(-qcpl).*/
+          label = :npl
+        when /.*(-acci)|(-qcci).*/
+          label = :cci
+        when /.*(-accf)|(-qccf).*/
+          label = :ccf
+        when /.*(-anbs)|(-qnbs).*/
+          label = :nbs
         when /.*\.xbrl$/
           label = :old_xbrl #xbrlファイル.(たぶん古いデータはxbrlで新しめのデータはxbrl.html)
         else
