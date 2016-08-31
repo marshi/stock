@@ -22,6 +22,7 @@ xbrl_list = [
 		"OrdinaryIncome", #経常利益
 		"ExtraordinaryLoss", #特別損失合計
 		"NetIncome", #当期純利益
+    "ProfitLoss", #四半期純利益
 		"SellingGeneralAndAdministrativeExpenses", #販売管理費及び一般管理費合計
 		"NonOperatingIncome", #営業外収益合計
 		"IncomeBeforeIncomeTaxes",
@@ -39,11 +40,23 @@ create_type_json = elasticsearch.create_type_json("profit_and_loss", xbrl_list)
 elasticsearch.create_type(create_type_json.to_json)
 charset = nil
 
+def diff(prev_map, map)
+  diff_map = {}
+  map.each{|key, value|
+    if map[key] != nil && prev_map[key] != nil
+      diff_map[key + "_diff"] = map[key].to_i - prev_map[key].to_i
+      diff_map[key + "_diff_%"] = (map[key].to_f / prev_map[key].to_f) * 100
+    end
+  }
+  diff_map
+end
+
 stock_codes.each{|code|
 	xbrl_hash = ufocatcher.convert_to_xbrl(code)
 	if xbrl_hash.empty?
 		next
-	end
+  end
+  prev_map = {}
 	xbrl_hash.each{|day, info|
 		map = {}
     if info.type == :old_xbrl #XBRLファイル対象のパースl
@@ -67,8 +80,11 @@ stock_codes.each{|code|
     if map.empty?
       next
     end
+    diff_map = diff(prev_map, map)
+    map.merge!(diff_map)
     map["day"] = day
 		map["code"] = code
 		elasticsearch.post("profit_and_loss", map.to_json)
+    prev_map = map
 	}
 }
