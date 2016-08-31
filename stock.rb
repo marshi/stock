@@ -52,7 +52,7 @@ stock_codes.each{|code|
           charset = f.charset # 文字種別を取得
           f.read # htmlを読み込んで変数htmlに渡す
         end
-        map = xbrl_parser.parse(html, charset, xbrl_list)
+        map.merge!(xbrl_parser.parse(html, charset, xbrl_list))
       }
     else
       info.url_list.each{|url_info|
@@ -69,7 +69,6 @@ stock_codes.each{|code|
     end
     map["day"] = day
 		map["code"] = code
-		# pp map
 		elasticsearch.post("profit_and_loss", map.to_json)
 	}
 }

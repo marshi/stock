@@ -6,7 +6,13 @@ class XbrlParser
     map = {}
     list.each{|item|
       doc.xpath("//#{item}").each{|i|
-        if i.attribute("contextRef").text != "CurrentYTDConsolidatedDuration"
+        if i.attribute("contextRef").text != "CurrentYTDConsolidatedDuration" &&
+            i.attribute("contextRef").text != "CurrentYearConsolidatedDuration" &&
+            i.attribute("contextRef").text != "CurrentQuarterConsolidatedDuration" &&
+            i.attribute("contextRef").text != "CurrentAccumulatedQ1ConsolidatedDuration" &&
+            i.attribute("contextRef").text != "CurrentAccumulatedQ2ConsolidatedDuration" &&
+            i.attribute("contextRef").text != "CurrentAccumulatedQ3ConsolidatedDuration" &&
+            i.attribute("contextRef").text != "CurrentAccumulatedQ4ConsolidatedDuration"
           next
         end
         map[item] = i.text
