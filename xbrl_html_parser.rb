@@ -6,7 +6,7 @@ class XbrlHtmlParser
 		doc.remove_namespaces!
 		map = {}
 		list.each{|item|
-			value_tag_list = doc.xpath("//*[@name=\"jppfs_cor:#{item}\"]")
+			value_tag_list = doc.xpath("//*[@name=\"jppfs_cor:#{item[0]}\"]")
 			if value_tag_list.empty?
 				# puts "empty"
 				# puts item
@@ -19,7 +19,7 @@ class XbrlHtmlParser
 				sign = nilable_sign.value
 			end
 			value = value_tag_list[1].text
-			map[item] = (sign + value.gsub(/(\d{0,3}),(\d{3})/, '\1\2')).to_i * 1000000
+			map[item[0]] = (sign + value.gsub(/(\d{0,3}),(\d{3})/, '\1\2')).to_i * 1000000
 		}
 		map
   end

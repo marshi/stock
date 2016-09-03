@@ -5,7 +5,7 @@ class XbrlParser
     doc.remove_namespaces!
     map = {}
     list.each{|item|
-      doc.xpath("//#{item}").each{|i|
+      doc.xpath("//#{item[0]}").each{|i|
         if i.attribute("contextRef").text != "CurrentYTDConsolidatedDuration" &&
             i.attribute("contextRef").text != "CurrentYearConsolidatedDuration" &&
             i.attribute("contextRef").text != "CurrentQuarterConsolidatedDuration" &&
@@ -15,7 +15,7 @@ class XbrlParser
             i.attribute("contextRef").text != "CurrentAccumulatedQ4ConsolidatedDuration"
           next
         end
-        map[item] = i.text
+        map[item[0]] = i.text
       }
     }
     map

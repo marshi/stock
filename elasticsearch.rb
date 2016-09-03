@@ -21,7 +21,7 @@ class Elasticsearch
         }
     }
     list.each{|item|
-      type_map[type]["properties"][item] = {
+      type_map[type]["properties"][item[0]] = {
           "type" => "number",
           "index" => "not_analyzed"
       }

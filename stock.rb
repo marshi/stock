@@ -14,21 +14,21 @@ stock_codes = [
 ]
 
 xbrl_list = [
-    "CostOfSales", #売上原価
-    "NetSales", #売上高合計
-    "CostOfSales", #売上原価合計
-    "GrossProfit", #売上純利益
-    "OperatingIncome", #営業利益
-    "OrdinaryIncome", #経常利益
-    "ExtraordinaryLoss", #特別損失合計
-    "NetIncome", #当期純利益
-    "ProfitLoss", #四半期純利益
-    "SellingGeneralAndAdministrativeExpenses", #販売管理費及び一般管理費合計
-    "NonOperatingIncome", #営業外収益合計
-    "IncomeBeforeIncomeTaxes",
-    "NetCashProvidedByUsedInOperatingActivities", #営業活動によるキャッシュ・フロー
-    "NetCashProvidedByUsedInInvestmentActivities", #投資活動によるキャッシュ・フロー
-    "NetCashProvidedByUsedInFinancingActivities" #財務活動によるキャッシュ・フロー
+    ["CostOfSales"], #売上原価
+    ["NetSales"], #売上高合計
+    ["CostOfSales"], #売上原価合計
+    ["GrossProfit"], #売上純利益
+    ["OperatingIncome"], #営業利益
+    ["OrdinaryIncome"], #経常利益
+    ["ExtraordinaryLoss"], #特別損失合計
+    ["NetIncome"], #当期純利益
+    ["ProfitLoss"], #四半期純利益
+    ["SellingGeneralAndAdministrativeExpenses"], #販売管理費及び一般管理費合計
+    ["NonOperatingIncome"], #営業外収益合計
+    ["IncomeBeforeIncomeTaxes"],
+    ["NetCashProvidedByUsedInOperatingActivities"], #営業活動によるキャッシュ・フロー
+    ["NetCashProvidedByUsedInInvestmentActivities"], #投資活動によるキャッシュ・フロー
+    ["NetCashProvidedByUsedInFinancingActivities"] #財務活動によるキャッシュ・フロー
 ]
 
 elasticsearch = Elasticsearch.new
