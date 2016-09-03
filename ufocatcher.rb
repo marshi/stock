@@ -17,8 +17,10 @@ class Ufocatcher
     }.each{|link|
       label = nil
       case link
-        when /.*(-anpl)|(-qcpl).*/
+        when /.*(-anpl)|(-qnpl).*/
           label = :npl
+        when /.*(-acpl)|(-qcpl).*/
+          label = :cpl
         when /.*(-acci)|(-qcci).*/
           label = :cci
         when /.*(-accf)|(-qccf).*/
