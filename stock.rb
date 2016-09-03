@@ -21,14 +21,34 @@ xbrl_list = [
     ["OperatingIncome"], #営業利益
     ["OrdinaryIncome"], #経常利益
     ["ExtraordinaryLoss"], #特別損失合計
-    ["ProfitLoss", "NetIncome", "ProfitLossAttributeToOwnerOfParent"], #四半期純利益 #当期純利益 #親会社に帰属する当期純利益
+    ["ProfitLoss", #四半期純利益
+     "NetIncome", #当期純利益
+     "ProfitLossAttributeToOwnerOfParent" #親会社に帰属する当期純利益
+    ],
     ["SellingGeneralAndAdministrativeExpenses"], #販売管理費及び一般管理費合計
     ["NonOperatingIncome"], #営業外収益合計
     ["IncomeBeforeIncomeTaxes"],
-    ["ProfitLossAttributeToOwnerOfParentSummaryOfBusinessResults", "NetIncomeLossSummaryOfBusinessResults"], #親会社株主に帰属する当期純利益または親会社株主に帰属する当期純損失
+    [ "ProfitLossAttributeToOwnerOfParentSummaryOfBusinessResults", #親会社株主に帰属する当期純利益または親会社株主に帰属する当期純損失
+      "NetIncomeLossSummaryOfBusinessResults"
+    ],
     ["NetCashProvidedByUsedInOperatingActivities"], #営業活動によるキャッシュ・フロー
     ["NetCashProvidedByUsedInInvestmentActivities"], #投資活動によるキャッシュ・フロー
     ["NetCashProvidedByUsedInFinancingActivities"] #財務活動によるキャッシュ・フロー
+]
+
+xbrl_attr_list = [
+    ["CurrentYTDConsolidatedDuration",
+     "CurrentYearConsolidatedDuration",
+     "CurrentQuarterConsolidatedDuration",
+     "CurrentAccumulatedQ1ConsolidatedDuration",
+     "CurrentAccumulatedQ2ConsolidatedDuration",
+     "CurrentAccumulatedQ3ConsolidatedDuration",
+     "CurrentAccumulatedQ4ConsolidatedDuration"],
+    [ "NextAccumulatedQ1ConsolidatedDuration",
+      "NextAccumulatedQ2ConsolidatedDuration",
+      "NextAccumulatedQ3ConsolidatedDuration",
+      "NextAccumulatedQ4ConsolidatedDuration"
+    ]
 ]
 
 elasticsearch = Elasticsearch.new
