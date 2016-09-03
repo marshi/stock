@@ -21,8 +21,7 @@ xbrl_list = [
     ["OperatingIncome"], #営業利益
     ["OrdinaryIncome"], #経常利益
     ["ExtraordinaryLoss"], #特別損失合計
-    ["NetIncome"], #当期純利益
-    ["ProfitLoss"], #四半期純利益
+    ["ProfitLoss", "NetIncome"], #四半期純利益 #当期純利益
     ["SellingGeneralAndAdministrativeExpenses"], #販売管理費及び一般管理費合計
     ["NonOperatingIncome"], #営業外収益合計
     ["IncomeBeforeIncomeTaxes"],
