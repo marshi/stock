@@ -23,7 +23,8 @@ xbrl_list = [
     ["ExtraordinaryLoss"], #特別損失合計
     ["ProfitLoss", #四半期純利益
      "NetIncome", #当期純利益
-     "ProfitLossAttributeToOwnerOfParent" #親会社に帰属する当期純利益
+     "ProfitLossAttributeToOwnerOfParent", #親会社に帰属する当期純利益
+     "IncomeBeforeMinorityInterests" #少数株主損益調整前当期純利益
     ],
     ["SellingGeneralAndAdministrativeExpenses"], #販売管理費及び一般管理費合計
     ["NonOperatingIncome"], #営業外収益合計
@@ -36,14 +37,18 @@ xbrl_list = [
     ["NetCashProvidedByUsedInFinancingActivities"] #財務活動によるキャッシュ・フロー
 ]
 
-xbrl_attr_list = [
+xbrl_attrs_list = [
     ["CurrentYTDConsolidatedDuration",
      "CurrentYearConsolidatedDuration",
      "CurrentQuarterConsolidatedDuration",
      "CurrentAccumulatedQ1ConsolidatedDuration",
      "CurrentAccumulatedQ2ConsolidatedDuration",
      "CurrentAccumulatedQ3ConsolidatedDuration",
-     "CurrentAccumulatedQ4ConsolidatedDuration"],
+     "CurrentAccumulatedQ4ConsolidatedDuration",
+     "CurrentYTDDuration",
+     "CurrentYearInstant_NonConsolidatedMember",
+     "CurrentYearDuration"
+    ],
     [ "NextAccumulatedQ1ConsolidatedDuration",
       "NextAccumulatedQ2ConsolidatedDuration",
       "NextAccumulatedQ3ConsolidatedDuration",
@@ -56,7 +61,7 @@ ufocatcher = Ufocatcher.new
 xbrl_html_parser = XbrlHtmlParser.new
 xbrl_parser = XbrlParser.new
 
-create_type_json = elasticsearch.create_type_json("profit_and_loss", xbrl_list)
+create_type_json = elasticsearch.create_type_json("profit_and_loss", xbrl_list, xbrl_attrs_list)
 elasticsearch.create_type(create_type_json.to_json)
 charset = nil
 
@@ -64,8 +69,8 @@ def diff(prev_map, map)
   diff_map = {}
   map.each{|key, value|
     if map[key] != nil && prev_map[key] != nil
-      diff_map[key + "_diff"] = prev_map[key].to_i - map[key].to_i
-      diff_map[key + "_diff_%"] = (prev_map[key].to_f / map[key].to_f) * 100
+      diff_map[key + "_diff"] =  map[key].to_i - prev_map[key].to_i
+      diff_map[key + "_diff_%"] = (map[key].to_f / prev_map[key].to_f) * 100
     end
   }
   diff_map
@@ -76,6 +81,8 @@ stock_codes.each{|code|
   if xbrl_hash.empty?
     next
   end
+  xbrl_hash = Hash[xbrl_hash.sort_by { |k,_| Date.strptime(k,"%Y/%m/%d") }]
+
   prev_map = {}
   xbrl_hash.each{|day, info|
     pp day
@@ -86,14 +93,14 @@ stock_codes.each{|code|
           charset = f.charset # 文字種別を取得
           f.read # htmlを読み込んで変数htmlに渡す
         end
-        map.merge!(xbrl_parser.parse(html, charset, xbrl_list))
+        map.merge!(xbrl_parser.parse(html, charset, xbrl_list, xbrl_attrs_list))
       else
         info.url_list.each{|url_info|
           html = open(url_info.url) do |f|
             charset = f.charset # 文字種別を取得
             f.read # htmlを読み込んで変数htmlに渡す
           end
-          tmp_map = xbrl_html_parser.parse_to_map(html, charset, xbrl_list)
+          tmp_map = xbrl_html_parser.parse_to_map(html, charset, xbrl_list, xbrl_attrs_list)
           map.merge!(tmp_map)
         }
       end
@@ -105,7 +112,6 @@ stock_codes.each{|code|
     map.merge!(diff_map)
     map["day"] = day
     map["code"] = code
-    pp map
     elasticsearch.post("profit_and_loss", map.to_json)
     prev_map = map
   }

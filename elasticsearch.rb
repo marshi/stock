@@ -8,7 +8,7 @@ class Elasticsearch
     @port = "9200"
   end
 
-  def create_type_json(type, list)
+  def create_type_json(type, list, attrs_list)
     type_map = {
         type => {
             "properties" => {
@@ -21,9 +21,11 @@ class Elasticsearch
         }
     }
     list.each{|item|
-      type_map[type]["properties"][item[0]] = {
-          "type" => "number",
-          "index" => "not_analyzed"
+      attrs_list.each{|attrs|
+        type_map[type]["properties"]["#{item[0]}:#{attrs[0]}"] = {
+            "type" => "number",
+            "index" => "not_analyzed"
+        }
       }
     }
     type_map
