@@ -128,7 +128,6 @@ stock_codes.each{|code|
     map.merge!(diff_map)
     map["day"] = day
     map["code"] = code
-    pp map
     elasticsearch.post("profit_and_loss", map.to_json)
     prev_map = map
   }
