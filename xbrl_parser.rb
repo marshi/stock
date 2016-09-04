@@ -11,7 +11,11 @@ class XbrlParser
             if !xbrl_attrs.include?(i.attribute("contextRef").text)
               next
             end
-            map["#{xbrl_names[0]}:#{xbrl_attrs[0]}"] = i.text.gsub(/(\d{0,3}),(\d{3})/, '\1\2').to_i
+            scale = 0
+            if i.attribute("scale") != nil
+              scale = i.attribute("scale").value
+            end
+            map["#{xbrl_names[0]}:#{xbrl_attrs[0]}"] = i.text.gsub(/(\d{0,3}),(\d{3})/, '\1\2').to_f * (10 ** scale.to_f)
           }
         }
       }

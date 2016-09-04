@@ -17,12 +17,16 @@ class XbrlHtmlParser
 						end
 						nilable_sign = i.attribute("sign")
 						if nilable_sign == nil
-							sign = ""
+							sign = 1
 						else
-							sign = nilable_sign.value
+							sign = -1
 						end
 						value = i.text
-						map["#{xbrl_names[0]}:#{xbrl_attrs[0]}"] = (sign + value.gsub(/(\d{0,3}),(\d{3})/, '\1\2')).to_i * 1000000
+						scale = 0
+						if i.attribute("scale") != nil
+							scale = i.attribute("scale").value
+						end
+						map["#{xbrl_names[0]}:#{xbrl_attrs[0]}"] = sign * (value.gsub(/(\d{0,3}),(\d{3})/, '\1\2').to_f * (10 ** scale.to_f))
 					}
 				}
 			}
