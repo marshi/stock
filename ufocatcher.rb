@@ -17,6 +17,8 @@ class Ufocatcher
     }.each{|link|
       label = nil
       case link
+        when /.*\/Summary\/.*/
+          label = :summary
         when /.*(-anpl)|(-qnpl).*/
           label = :npl
         when /.*(-acpl)|(-qcpl).*/

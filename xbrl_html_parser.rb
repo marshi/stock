@@ -1,13 +1,16 @@
 class XbrlHtmlParser
 
 	def parse_to_map(html, charset, xbrl_names_list, xbrl_attrs_list)
-
 		doc = Nokogiri::HTML.parse(html, nil, charset)
 		doc.remove_namespaces!
 		map = {}
 		xbrl_names_list.each{|xbrl_names|
 			xbrl_names.each{|xbrl_name|
-				doc.xpath("//*[@name=\"jppfs_cor:#{xbrl_name}\"]").each{|i|
+				doc_xpath = doc.xpath("//*[@name=\"jppfs_cor:#{xbrl_name}\"]")
+        if doc_xpath.empty?
+					doc_xpath = doc.xpath("//*[@name=\"tse-ed-t:#{xbrl_name}\"]")
+				end
+        doc_xpath.each{|i|
 					xbrl_attrs_list.each{|xbrl_attrs|
 						if !xbrl_attrs.include?(i.attribute("contextref").text)
 							next
