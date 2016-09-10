@@ -81,9 +81,15 @@ charset = nil
 def diff(prev_map, map)
   diff_map = {}
   map.each{|key, value|
-    if map[key] != nil && prev_map[key] != nil
-      diff_map[key + "_diff"] =  map[key].to_i - prev_map[key].to_i
-      diff_map[key + "_diff_%"] = (map[key].to_f / prev_map[key].to_f) * 100
+    if map[:q1] && !key.is_a?(Symbol)
+      diff_map[key + "_diff"] = value
+    else
+      if map[key] != nil && prev_map[key] != nil
+        diff_map[key + "_diff"] =  map[key].to_i - prev_map[key].to_i
+        if prev_map[key + "_diff"] != nil && prev_map[key + "_diff"] != 0
+          diff_map[key + "_diff_%"] = (diff_map[key + "_diff"].to_f / prev_map[key + "_diff"].to_f) * 100
+        end
+      end
     end
   }
   diff_map

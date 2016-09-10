@@ -15,6 +15,9 @@ class XbrlHtmlParser
 						if !xbrl_attrs.include?(i.attribute("contextref").text)
 							next
 						end
+						if map[:q1] == nil && i.attribute("contextref").text =~ /.*Q1.*/
+							map[:q1] = true
+						end
 						nilable_sign = i.attribute("sign")
 						if nilable_sign == nil
 							sign = 1
