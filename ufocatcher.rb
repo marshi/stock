@@ -17,8 +17,12 @@ class Ufocatcher
     }.each{|link|
       label = nil
       case link
+        when /.*\.xbrl$/
+          label = :old_xbrl #xbrlファイル.(たぶん古いデータはxbrlで新しめのデータはxbrl.html)
         when /.*\/Summary\/.*/
           label = :summary
+        when /.*(-aced)|(-qced).*/
+          label = :ced
         when /.*(-anpl)|(-qnpl).*/
           label = :npl
         when /.*(-acpl)|(-qcpl).*/
@@ -29,17 +33,14 @@ class Ufocatcher
           label = :ccf
         when /.*(-anbs)|(-qnbs).*/
           label = :nbs
-        when /.*\.xbrl$/
-          label = :old_xbrl #xbrlファイル.(たぶん古いデータはxbrlで新しめのデータはxbrl.html)
         else
           next
       end
-      url_info= UrlInfo.new(link)
+      url_info = UrlInfo.new(link, label)
       xbrl = xbrl_hash[url_info.day] ||= Xbrl.new
       array = xbrl.url_list ||= []
       array << url_info
       xbrl.url_list = array
-      xbrl.type = label
       xbrl_hash[url_info.day] = xbrl
     }
     xbrl_hash

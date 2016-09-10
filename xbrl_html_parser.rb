@@ -26,7 +26,7 @@ class XbrlHtmlParser
 						if i.attribute("scale") != nil
 							scale = i.attribute("scale").value
 						end
-						map["#{xbrl_names[0]}:#{xbrl_attrs[0]}"] = sign * (value.gsub(/(\d{0,3}),(\d{3})/, '\1\2').to_f * (10 ** scale.to_f))
+						map["#{xbrl_names[0]}-#{xbrl_attrs[0]}"] = sign * (value.gsub(/(\d{0,3}),(\d{3})/, '\1\2').to_f * (10 ** scale.to_f))
 					}
 				}
 			}

@@ -10,7 +10,7 @@ require_relative 'elasticsearch'
 require_relative 'ufocatcher'
 
 stock_codes = [
-    7494
+    4751
 ]
 
 xbrl_list = [
@@ -98,13 +98,17 @@ stock_codes.each{|code|
 
   prev_map = {}
   xbrl_hash.each{|day, info|
+    # pp day
+    # if !(day =~ /.*2014.*/)
+    #    next
+    # end
     pp day
     map = {}
     info.url_list.each{|url_info|
-      # if url_info.url != "http://resource.ufocatch.com/xbrl/tdnet/TD2015111300058/2015/11/13/081220150908493331/XBRLData/Summary/tse-acedjpsm-74940-20150908493331-ixbrl.htm"
+      # if url_info.url != "http://resource.ufocatch.com/xbrl/tdnet/TD2014013000159/2014/1/30/081220140127092370/XBRLData/Summary/tse-qcedjpsm-47510-20140127092370-ixbrl.htm"
       #   next
       # end
-      if info.type == :old_xbrl #XBRLファイル対象のパース
+      if url_info.type == :old_xbrl #XBRLファイル対象のパース
         html = open(url_info.url) do |f|
           charset = f.charset # 文字種別を取得
           f.read # htmlを読み込んで変数htmlに渡す

@@ -6,23 +6,24 @@ class Xbrl
   end
 
   @url_list = []
-  #anplとか
-  @type
 
 end
 
 class UrlInfo
 
-  attr_accessor :url, :day
-
-  def initialize(url)
-    @url = url
-    year, month, day = day_parse(url)
-    @day = "#{year}/#{sprintf("%02d", month)}/#{sprintf("%02d", day)}"
-  end
+  attr_accessor :url, :day, :type
 
   @url
   @day
+  #anplとか
+  @type
+
+  def initialize(url, type)
+    @url = url
+    year, month, day = day_parse(url)
+    @day = "#{year}/#{sprintf("%02d", month)}/#{sprintf("%02d", day)}"
+    @type = type
+  end
 
   private
   def day_parse(url)
