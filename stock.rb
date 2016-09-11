@@ -78,16 +78,22 @@ create_type_json = elasticsearch.create_type_json("profit_and_loss", xbrl_list, 
 elasticsearch.create_type(create_type_json.to_json)
 charset = nil
 
-def diff(prev_map, map)
+def diff(prev_map, map, is_quarter, suffix)
+  if prev_map == nil || map == nil
+    return map
+  end
   diff_map = {}
   map.each{|key, value|
-    if map[:q1] && !key.is_a?(Symbol)
-      diff_map[key + "_diff"] = value
+    if key.is_a?(Symbol)
+      next
+    end
+    if map[:q1] && !is_quarter
+      diff_map[key + suffix] = value
     else
       if map[key] != nil && prev_map[key] != nil
-        diff_map[key + "_diff"] =  map[key].to_i - prev_map[key].to_i
-        if prev_map[key + "_diff"] != nil && prev_map[key + "_diff"] != 0
-          diff_map[key + "_diff_%"] = (diff_map[key + "_diff"].to_f / prev_map[key + "_diff"].to_f) * 100
+        diff_map[key + suffix] =  map[key].to_i - prev_map[key].to_i
+        if prev_map[key + suffix] != nil && prev_map[key + suffix] != 0
+          diff_map[key + suffix + "_%"] = (diff_map[key + suffix].to_f / prev_map[key + suffix].to_f) * 100
         end
       end
     end
@@ -103,12 +109,13 @@ stock_codes.each{|code|
   xbrl_hash = Hash[xbrl_hash.sort_by { |k,_| Date.strptime(k,"%Y/%m/%d") }]
 
   prev_map = {}
+  prev_month_map = {}
   xbrl_hash.each{|day, info|
-    # pp day
-    # if !(day =~ /.*2014.*/)
+    pp day
+    month = day.match(/\d{4}\/(\d{2})\/\d{2}/)[1]
+    # if !(day =~ /.*2016.*/)
     #    next
     # end
-    pp day
     map = {}
     info.url_list.each{|url_info|
       # if url_info.url != "http://resource.ufocatch.com/xbrl/tdnet/TD2014013000159/2014/1/30/081220140127092370/XBRLData/Summary/tse-qcedjpsm-47510-20140127092370-ixbrl.htm"
@@ -134,11 +141,14 @@ stock_codes.each{|code|
     if map.empty?
       next
     end
-    diff_map = diff(prev_map, map)
+    diff_map = diff(prev_map, map, false, "_diff")
+    map.merge!(diff_map)
+    diff_map = diff(prev_month_map[month], map, true, "_diff_Q")
     map.merge!(diff_map)
     map["day"] = day
     map["code"] = code
     elasticsearch.post("profit_and_loss", map.to_json)
     prev_map = map
+    prev_month_map[month] = map
   }
 }

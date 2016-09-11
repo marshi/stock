@@ -11,10 +11,11 @@ end
 
 class UrlInfo
 
-  attr_accessor :url, :day, :type
+  attr_accessor :url, :day, :month, :type
 
   @url
   @day
+  @month
   #anplとか
   @type
 
@@ -22,6 +23,7 @@ class UrlInfo
     @url = url
     year, month, day = day_parse(url)
     @day = "#{year}/#{sprintf("%02d", month)}/#{sprintf("%02d", day)}"
+    @month = month
     @type = type
   end
 
