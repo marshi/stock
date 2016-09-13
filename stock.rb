@@ -8,6 +8,8 @@ require_relative 'xbrl_html_parser'
 require_relative 'xbrl_parser'
 require_relative 'elasticsearch'
 require_relative 'ufocatcher'
+require_relative 'kdb'
+require_relative 'stock_price'
 
 stock_codes = [
     4751
@@ -69,15 +71,19 @@ xbrl_attrs_list = [
     ]
 ]
 
+kdb = Kdb.new
 elasticsearch = Elasticsearch.new
 ufocatcher = Ufocatcher.new
 xbrl_html_parser = XbrlHtmlParser.new
 xbrl_parser = XbrlParser.new
 
 create_type_json = elasticsearch.create_type_json("profit_and_loss", xbrl_list, xbrl_attrs_list)
-elasticsearch.create_type(create_type_json.to_json)
-charset = nil
+elasticsearch.create_type("stock", create_type_json.to_json)
 
+create_day_json = elasticsearch.create_day_json("profit_and_loss")
+elasticsearch.create_type("price", create_day_json.to_json)
+
+charset = nil
 def diff(prev_map, map, is_quarter, suffix)
   if prev_map == nil || map == nil
     return map
@@ -147,8 +153,14 @@ stock_codes.each{|code|
     map.merge!(diff_map)
     map["day"] = day
     map["code"] = code
-    elasticsearch.post("profit_and_loss", map.to_json)
+    elasticsearch.post("stock", "profit_and_loss", map.to_json)
     prev_map = map
     prev_month_map[month] = map
+  }
+
+  price_list = kdb.price_list(code, 2016, 2015, 2014)
+  price_list.each{|p|
+    map = {:day => p.day, :code => code, :price => p.price}
+    elasticsearch.post("price", "profit_and_loss", map.to_json)
   }
 }

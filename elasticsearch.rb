@@ -9,17 +9,7 @@ class Elasticsearch
   end
 
   def create_type_json(type, list, attrs_list)
-    type_map = {
-        type => {
-            "properties" => {
-                "day" => {
-                    "type" => "date",
-                    "format" => "yyyy/mm/dd",
-                    "index" => "not_analyzed"
-                }
-            }
-        }
-    }
+    type_map = create_day_json(type)
     list.each{|item|
       attrs_list.each{|attrs|
         type_map[type]["properties"]["#{item[0]}-#{attrs[0]}"] = {
@@ -31,22 +21,36 @@ class Elasticsearch
     type_map
   end
 
-  def create_type(json)
-    conn = Faraday::Connection.new(:url => "http://#{@host}:#{@port}") do |builder|
-      builder.use Faraday::Request::UrlEncoded
-      # builder.use Faraday::Response::Logger
-      builder.use Faraday::Adapter::NetHttp
-    end
-    conn.put "/stock", json
+  def create_day_json(type)
+    {
+        type => {
+            "properties" => {
+                "day" => {
+                    "type" => "date",
+                    "format" => "yyyy/mm/dd",
+                    "index" => "not_analyzed"
+                }
+            }
+        }
+    }
   end
 
-  def post(type, json)
+  def create_type(index, json)
     conn = Faraday::Connection.new(:url => "http://#{@host}:#{@port}") do |builder|
       builder.use Faraday::Request::UrlEncoded
       # builder.use Faraday::Response::Logger
       builder.use Faraday::Adapter::NetHttp
     end
-    res = conn.post "/stock/#{type}/", json
+    conn.put "/#{index}", json
+  end
+
+  def post(index, type, json)
+    conn = Faraday::Connection.new(:url => "http://#{@host}:#{@port}") do |builder|
+      builder.use Faraday::Request::UrlEncoded
+      # builder.use Faraday::Response::Logger
+      builder.use Faraday::Adapter::NetHttp
+    end
+    res = conn.post "/#{index}/#{type}/", json
   end
 
 end
