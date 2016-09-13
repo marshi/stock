@@ -107,6 +107,14 @@ def diff(prev_map, map, is_quarter, suffix)
   diff_map
 end
 
+# year_monthより前で最新のデータを取得する.
+def latest_stock(map, year_month_date)
+  m = map.select{|k, v|
+    k.to_i < year_month_date.to_i
+  }
+  map[m.max[0]]
+end
+
 stock_codes.each{|code|
   xbrl_hash = ufocatcher.convert_to_xbrl(code)
   if xbrl_hash.empty?
@@ -114,11 +122,15 @@ stock_codes.each{|code|
   end
   xbrl_hash = Hash[xbrl_hash.sort_by { |k,_| Date.strptime(k,"%Y/%m/%d") }]
 
+  year_month_date_map = {}
   prev_map = {}
   prev_month_map = {}
   xbrl_hash.each{|day, info|
     pp day
-    month = day.match(/\d{4}\/(\d{2})\/\d{2}/)[1]
+    year_month_date = day.match(/(\d{4})\/(\d{2})\/(\d{2})/)
+    year = year_month_date[1]
+    month = year_month_date[2]
+    date = year_month_date[3]
     # if !(day =~ /.*2016.*/)
     #    next
     # end
@@ -156,11 +168,19 @@ stock_codes.each{|code|
     elasticsearch.post("stock", "profit_and_loss", map.to_json)
     prev_map = map
     prev_month_map[month] = map
+    year_month_date_map["#{year}#{month}#{date}"] = map
   }
 
-  price_list = kdb.price_list(code, 2016, 2015, 2014)
+  price_list = kdb.price_list(code, 2014, 2015, 2016)
   price_list.each{|p|
-    map = {:day => p.day, :code => code, :price => p.price}
-    elasticsearch.post("price", "profit_and_loss", map.to_json)
+    per = nil
+    year_month_date = p.day.gsub(/(\d{4})\/(\d{2})\/(\d{2})/, '\1\2\3')
+    net_income_per_share = latest_stock(year_month_date_map, year_month_date)["NetIncomePerShare-NextYearDuration_ConsolidatedMember_ForecastMember"].to_i
+    if net_income_per_share != nil && net_income_per_share != 0
+      per = p.price / net_income_per_share
+    end
+    price_map = {:day => p.day, :code => code, :price => p.price, :per => per}
+    elasticsearch.post("price", "profit_and_loss", price_map.to_json)
   }
+
 }
