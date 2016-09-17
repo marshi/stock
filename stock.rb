@@ -18,6 +18,7 @@ stock_codes = [
 xbrl_list = [
     ["CostOfSales"], #売上原価
     ["NetSales"], #売上高合計
+    ["NetAssets"], #純資産
     ["CostOfSales"], #売上原価合計
     ["GrossProfit"], #売上純利益
     ["OperatingIncome"], #営業利益
@@ -36,9 +37,11 @@ xbrl_list = [
       "NetIncomeLossSummaryOfBusinessResults"
     ],
     ["NetIncomePerShare"], #1株当たり当期純利益
+    ["NetAssetsPerShare"], #一株あたり純資産
     ["NetCashProvidedByUsedInOperatingActivities"], #営業活動によるキャッシュ・フロー
     ["NetCashProvidedByUsedInInvestmentActivities"], #投資活動によるキャッシュ・フロー
-    ["NetCashProvidedByUsedInFinancingActivities"] #財務活動によるキャッシュ・フロー
+    ["NetCashProvidedByUsedInFinancingActivities"], #財務活動によるキャッシュ・フロー
+    ["NumberOfIssuedAndOutstandingSharesAtTheEndOfFiscalYearIncludingTreasuryStock"] #発行済株式数
 ]
 
 xbrl_attrs_list = [
@@ -56,6 +59,19 @@ xbrl_attrs_list = [
      "CurrentYTDDuration",
      "CurrentYearInstant_NonConsolidatedMember",
      "CurrentYearDuration"
+    ],
+    ["CurrentAccumulatedQ1Instant_ConsolidatedMember_ResultMember",
+     "CurrentAccumulatedQ2Instant_ConsolidatedMember_ResultMember",
+     "CurrentAccumulatedQ3Instant_ConsolidatedMember_ResultMember",
+     "CurrentAccumulatedQ4Instant_ConsolidatedMember_ResultMember",
+     "CurrentYearInstant_ConsolidatedMember_ResultMember",
+     "CurrentYearConsolidatedInstant"
+    ],
+    ["CurrentYearInstant_NonConsolidatedMember_ResultMember",
+     "CurrentAccumulatedQ1Instant_NonConsolidatedMember_ResultMember",
+     "CurrentAccumulatedQ2Instant_NonConsolidatedMember_ResultMember",
+     "CurrentAccumulatedQ3Instant_NonConsolidatedMember_ResultMember",
+     "CurrentAccumulatedQ4Instant_NonConsolidatedMember_ResultMember"
     ],
     [ "NextAccumulatedQ1ConsolidatedDuration", #四半期業績予想 親会社株主に帰属する当期純利益
       "NextAccumulatedQ2ConsolidatedDuration",
@@ -175,11 +191,21 @@ stock_codes.each{|code|
   price_list.each{|p|
     per = nil
     year_month_date = p.day.gsub(/(\d{4})\/(\d{2})\/(\d{2})/, '\1\2\3')
-    net_income_per_share = latest_stock(year_month_date_map, year_month_date)["NetIncomePerShare-NextYearDuration_ConsolidatedMember_ForecastMember"].to_i
+    latest_stock = latest_stock(year_month_date_map, year_month_date)
+    net_income_per_share = latest_stock["NetIncomePerShare-NextYearDuration_ConsolidatedMember_ForecastMember"].to_f
     if net_income_per_share != nil && net_income_per_share != 0
       per = p.price / net_income_per_share
     end
-    price_map = {:day => p.day, :code => code, :price => p.price, :per => per}
+
+    stock_number = latest_stock["NumberOfIssuedAndOutstandingSharesAtTheEndOfFiscalYearIncludingTreasuryStock-CurrentYearInstant_NonConsolidatedMember_ResultMember"].to_i
+    net_assets = latest_stock["NetAssets-CurrentAccumulatedQ1Instant_ConsolidatedMember_ResultMember"].to_f
+    net_assets_per_share = net_assets / stock_number
+    pbr = nil
+    if net_assets_per_share != nil && net_assets_per_share != 0
+      pbr = p.price / net_assets_per_share
+    end
+
+    price_map = {:day => p.day, :code => code, :price => p.price, :per => per, :pbr => pbr}
     elasticsearch.post("price", "profit_and_loss", price_map.to_json)
   }
 
