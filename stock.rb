@@ -41,7 +41,8 @@ xbrl_list = [
     ["NetCashProvidedByUsedInOperatingActivities"], #営業活動によるキャッシュ・フロー
     ["NetCashProvidedByUsedInInvestmentActivities"], #投資活動によるキャッシュ・フロー
     ["NetCashProvidedByUsedInFinancingActivities"], #財務活動によるキャッシュ・フロー
-    ["NumberOfIssuedAndOutstandingSharesAtTheEndOfFiscalYearIncludingTreasuryStock"] #発行済株式数
+    ["NumberOfIssuedAndOutstandingSharesAtTheEndOfFiscalYearIncludingTreasuryStock"], #発行済株式数
+    ["OtherComprehensiveIncome"] # その他包括利益合計
 ]
 
 xbrl_attrs_list = [
@@ -131,6 +132,18 @@ def latest_stock(map, year_month_date)
   map[m.max[0]]
 end
 
+def roe_compute(map)
+  other_comprehensive_income = map["OtherComprehensiveIncome-CurrentYTDConsolidatedDuration"].to_i
+  net_assets = map["NetAssets-CurrentAccumulatedQ1Instant_ConsolidatedMember_ResultMember"].to_i
+  profit_loss = map["ProfitLoss-CurrentYTDConsolidatedDuration"].to_i
+  owned_capital = other_comprehensive_income + net_assets
+  roe = nil
+  if owned_capital != nil && owned_capital != 0
+    roe = profit_loss.to_f / owned_capital.to_f * 100
+  end
+  roe
+end
+
 stock_codes.each{|code|
   xbrl_hash = ufocatcher.convert_to_xbrl(code)
   if xbrl_hash.empty?
@@ -179,8 +192,10 @@ stock_codes.each{|code|
     map.merge!(diff_map)
     diff_map = diff(prev_month_map[month], map, true, "_diff_Q")
     map.merge!(diff_map)
+    roe = roe_compute(map)
     map["day"] = day
     map["code"] = code
+    map["roe"] = roe
     elasticsearch.post("stock", "profit_and_loss", map.to_json)
     prev_map = map
     prev_month_map[month] = map
@@ -192,11 +207,13 @@ stock_codes.each{|code|
     per = nil
     year_month_date = p.day.gsub(/(\d{4})\/(\d{2})\/(\d{2})/, '\1\2\3')
     latest_stock = latest_stock(year_month_date_map, year_month_date)
+    #PER
     net_income_per_share = latest_stock["NetIncomePerShare-NextYearDuration_ConsolidatedMember_ForecastMember"].to_f
     if net_income_per_share != nil && net_income_per_share != 0
       per = p.price / net_income_per_share
     end
 
+    #PBR
     stock_number = latest_stock["NumberOfIssuedAndOutstandingSharesAtTheEndOfFiscalYearIncludingTreasuryStock-CurrentYearInstant_NonConsolidatedMember_ResultMember"].to_i
     net_assets = latest_stock["NetAssets-CurrentAccumulatedQ1Instant_ConsolidatedMember_ResultMember"].to_f
     net_assets_per_share = net_assets / stock_number
@@ -205,7 +222,10 @@ stock_codes.each{|code|
       pbr = p.price / net_assets_per_share
     end
 
-    price_map = {:day => p.day, :code => code, :price => p.price, :per => per, :pbr => pbr}
+    #実質PER
+    substantial_per = p.price / (latest_stock["OrdinaryIncome-CurrentYTDConsolidatedDuration"].to_f * 0.6 / stock_number)
+
+    price_map = {:day => p.day, :code => code, :price => p.price, :per => per, :pbr => pbr, :substantial_per => substantial_per}
     elasticsearch.post("price", "profit_and_loss", price_map.to_json)
   }
 
