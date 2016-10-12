@@ -12,7 +12,7 @@ require_relative 'kdb'
 require_relative 'stock_price'
 
 stock_codes = [
-    4751
+   8125
 ]
 
 xbrl_list = [
@@ -42,7 +42,8 @@ xbrl_list = [
     ["NetCashProvidedByUsedInInvestmentActivities"], #投資活動によるキャッシュ・フロー
     ["NetCashProvidedByUsedInFinancingActivities"], #財務活動によるキャッシュ・フロー
     ["NumberOfIssuedAndOutstandingSharesAtTheEndOfFiscalYearIncludingTreasuryStock"], #発行済株式数
-    ["OtherComprehensiveIncome"] # その他包括利益合計
+    ["OtherComprehensiveIncome"], # その他包括利益合計
+    ["CapitalAdequacyRatio"] #自己資本比率
 ]
 
 xbrl_attrs_list = [
@@ -216,15 +217,23 @@ stock_codes.each{|code|
     #PBR
     stock_number = latest_stock["NumberOfIssuedAndOutstandingSharesAtTheEndOfFiscalYearIncludingTreasuryStock-CurrentYearInstant_NonConsolidatedMember_ResultMember"].to_i
     net_assets = latest_stock["NetAssets-CurrentAccumulatedQ1Instant_ConsolidatedMember_ResultMember"].to_f
-    net_assets_per_share = net_assets / stock_number
+    net_assets_per_share = nil
+    if stock_number != nil && stock_number != 0
+      net_assets_per_share = net_assets / stock_number
+    end
     pbr = nil
     if net_assets_per_share != nil && net_assets_per_share != 0
       pbr = p.price / net_assets_per_share
     end
 
     #実質PER
-    substantial_per = p.price / (latest_stock["OrdinaryIncome-CurrentYTDConsolidatedDuration"].to_f * 0.6 / stock_number)
-
+    substantial_per = nil
+    if stock_number != nil && stock_number != 0
+      ordinary_income = latest_stock["OrdinaryIncome-CurrentYTDConsolidatedDuration"].to_f * 0.6 / stock_number
+      if ordinary_income != nil && ordinary_income != 0
+        substantial_per = p.price / (ordinary_income)
+      end
+    end
     price_map = {:day => p.day, :code => code, :price => p.price, :per => per, :pbr => pbr, :substantial_per => substantial_per}
     elasticsearch.post("price", "profit_and_loss", price_map.to_json)
   }
