@@ -229,7 +229,7 @@ stock_codes.each{|code|
     #実質PER
     substantial_per = nil
     if stock_number != nil && stock_number != 0
-      ordinary_income = latest_stock["OrdinaryIncome-CurrentYTDConsolidatedDuration"].to_f * 0.6 / stock_number
+      ordinary_income = latest_stock["OrdinaryIncome-CurrentYTDConsolidatedDuration_diff"].to_f * 0.6 / stock_number
       if ordinary_income != nil && ordinary_income != 0
         substantial_per = p.price / (ordinary_income)
       end
